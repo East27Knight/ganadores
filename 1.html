@@ -9,34 +9,34 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50%,#0a0a0f 100%); display:flex; flex-direction:column; align-items:center; padding:60px 20px; font-family:"Space Mono",monospace; }
 .card-wrap { perspective:800px; margin-bottom:20px; }
-.card { width:280px; height:420px; border-radius:20px; position:relative; cursor:pointer; transform-style:preserve-3d; transition:transform 0.1s ease; box-shadow:0 0 40px #4299e188,0 20px 60px rgba(0,0,0,0.5); }
-.card-inner { position:absolute; inset:0; border-radius:20px; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); border:2px solid #4299e1; overflow:hidden; display:flex; flex-direction:column; }
+.card { width:280px; height:420px; border-radius:20px; position:relative; cursor:pointer; transform-style:preserve-3d; transition:transform 0.1s ease; box-shadow:0 0 40px #d946ef88,0 20px 60px rgba(0,0,0,0.5); }
+.card-inner { position:absolute; inset:0; border-radius:20px; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); border:2px solid #d946ef; overflow:hidden; display:flex; flex-direction:column; }
 .shimmer { position:absolute; inset:0; border-radius:20px; opacity:0; pointer-events:none; z-index:10; transition:opacity 0.1s; }
-.rarity-bar { background:linear-gradient(135deg, #bee3f8 0%, #4299e1 50%, #bee3f8 100%); height:6px; width:100%; flex-shrink:0; }
+.rarity-bar { background:linear-gradient(135deg, #f0abfc 0%, #d946ef 50%, #f0abfc 100%); height:6px; width:100%; flex-shrink:0; }
 .header { padding:12px 16px 8px; display:flex; justify-content:space-between; align-items:center; }
-.rarity-label { font-family:"Bebas Neue",cursive; font-size:11px; letter-spacing:3px; color:#4299e1; text-transform:uppercase; }
-.avatar { margin:0 16px; height:160px; border-radius:12px; flex-shrink:0; background:radial-gradient(ellipse at 50% 30%,#4299e133 0%,#0a0a1a 70%); border:1px solid #4299e144; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
-.c1 { position:absolute; width:120px; height:120px; border-radius:50%; border:1px solid #4299e122; }
-.c2 { position:absolute; width:80px; height:80px; border-radius:50%; border:1px solid #4299e144; }
+.rarity-label { font-family:"Bebas Neue",cursive; font-size:11px; letter-spacing:3px; color:#d946ef; text-transform:uppercase; }
+.avatar { margin:0 16px; height:160px; border-radius:12px; flex-shrink:0; background:radial-gradient(ellipse at 50% 30%,#d946ef33 0%,#0a0a1a 70%); border:1px solid #d946ef44; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+.c1 { position:absolute; width:120px; height:120px; border-radius:50%; border:1px solid #d946ef22; }
+.c2 { position:absolute; width:80px; height:80px; border-radius:50%; border:1px solid #d946ef44; }
 .emoji-hero { font-size:64px; position:relative; z-index:1; }
 .name-section { padding:12px 16px 4px; text-align:center; }
-.winner-name { font-family:"Bebas Neue",cursive; font-size:32px; letter-spacing:2px; color:#fff; text-shadow:0 0 20px #4299e1; line-height:1; }
-.winner-title { font-family:"Space Mono",monospace; font-size:10px; color:#4299e1; letter-spacing:2px; margin-top:4px; text-transform:uppercase; }
-.divider { margin:8px 16px; height:1px; background:linear-gradient(90deg,transparent,#4299e1,transparent); }
+.winner-name { font-family:"Bebas Neue",cursive; font-size:32px; letter-spacing:2px; color:#fff; text-shadow:0 0 20px #d946ef; line-height:1; }
+.winner-title { font-family:"Space Mono",monospace; font-size:10px; color:#d946ef; letter-spacing:2px; margin-top:4px; text-transform:uppercase; }
+.divider { margin:8px 16px; height:1px; background:linear-gradient(90deg,transparent,#d946ef,transparent); }
 .stats { padding:0 16px; flex:1; }
-.challenge-box { background:#4299e111; border-radius:8px; padding:8px 10px; border:1px solid #4299e122; margin-bottom:8px; }
-.challenge-label { font-family:"Space Mono",monospace; font-size:8px; color:#4299e1; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
+.challenge-box { background:#d946ef11; border-radius:8px; padding:8px 10px; border:1px solid #d946ef22; margin-bottom:8px; }
+.challenge-label { font-family:"Space Mono",monospace; font-size:8px; color:#d946ef; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
 .challenge-text { font-family:"Space Mono",monospace; font-size:11px; color:#e2e8f0; line-height:1.4; }
 .stat-row { display:flex; gap:6px; }
-.stat-box { flex:1; background:#4299e111; border-radius:8px; padding:6px 8px; border:1px solid #4299e122; text-align:center; }
-.stat-label { font-family:"Space Mono",monospace; font-size:7px; color:#4299e1; letter-spacing:1px; }
+.stat-box { flex:1; background:#d946ef11; border-radius:8px; padding:6px 8px; border:1px solid #d946ef22; text-align:center; }
+.stat-label { font-family:"Space Mono",monospace; font-size:7px; color:#d946ef; letter-spacing:1px; }
 .stat-value { font-family:"Bebas Neue",cursive; font-size:20px; color:#fff; }
 .footer { padding:8px 16px; display:flex; justify-content:space-between; align-items:center; }
 .footer span { font-family:"Space Mono",monospace; font-size:7px; color:#4a5568; letter-spacing:1px; }
 .hint { color:#64748b; font-size:10px; letter-spacing:2px; text-align:center; margin-top:8px; }
 .showcase { margin-top:48px; width:100%; max-width:480px; text-align:center; }
 .showcase-header { margin-bottom:20px; }
-.showcase-tag { font-family:"Space Mono",monospace; font-size:9px; color:#4299e1; letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+.showcase-tag { font-family:"Space Mono",monospace; font-size:9px; color:#d946ef; letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
 .showcase-challenge { font-family:"Bebas Neue",cursive; font-size:28px; letter-spacing:2px; color:#fff; line-height:1.2; }
 .showcase-img-wrap { border-radius:16px; overflow:hidden; border:1px solid #1e293b; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
 .showcase-img { width:100%; display:block; }
