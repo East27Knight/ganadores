@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Reto — Generador de Cartas</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { min-height: 100vh; background: linear-gradient(135deg, #000000 0%, #030712 50%, #0a0a0f 100%); font-family: 'Space Mono', monospace; color: #e2e8f0; }
+  .page { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+  .title { font-family: 'Bebas Neue', cursive; font-size: 48px; letter-spacing: 6px; background: linear-gradient(135deg, #f59e0b, #ec4899, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; text-align: center; }
+  .subtitle { font-size: 11px; color: #64748b; letter-spacing: 3px; margin-top: 6px; text-align: center; }
+  .layout { display: flex; gap: 48px; align-items: flex-start; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 820px; margin-top: 40px; }
+  .left-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .right-col { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* Card */
+  .card-wrap { perspective: 800px; }
+  .card { width: 280px; height: 420px; border-radius: 20px; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.1s ease; }
+  .card-inner { position: absolute; inset: 0; border-radius: 20px; background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); overflow: hidden; display: flex; flex-direction: column; }
+  .shimmer { position: absolute; inset: 0; border-radius: 20px; opacity: 0; pointer-events: none; z-index: 10; transition: opacity 0.15s; }
+  .rarity-bar { height: 6px; width: 100%; flex-shrink: 0; }
+  .card-header { padding: 12px 16px 8px; display: flex; justify-content: space-between; align-items: center; }
+  .rarity-label { font-family: 'Bebas Neue', cursive; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+  .card-icon { font-size: 18px; }
+  .avatar { margin: 0 16px; height: 160px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .circle1 { position: absolute; width: 120px; height: 120px; border-radius: 50%; }
+  .circle2 { position: absolute; width: 80px; height: 80px; border-radius: 50%; }
+  .emoji-hero { font-size: 64px; position: relative; z-index: 1; }
+  .name-section { padding: 12px 16px 4px; text-align: center; }
+  .winner-name { font-family: 'Bebas Neue', cursive; font-size: 32px; letter-spacing: 2px; color: #fff; line-height: 1; }
+  .winner-title { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
+  .divider { margin: 8px 16px; height: 1px; }
+  .stats-area { padding: 0 16px; flex: 1; }
+  .challenge-box { border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+  .challenge-label { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3px; }
+  .challenge-text { font-family: 'Space Mono', monospace; font-size: 11px; color: #e2e8f0; line-height: 1.4; }
+  .stat-row { display: flex; gap: 6px; }
+  .stat-box { flex: 1; border-radius: 8px; padding: 6px 8px; text-align: center; }
+  .stat-label { font-family: 'Space Mono', monospace; font-size: 7px; letter-spacing: 1px; }
+  .stat-value { font-family: 'Bebas Neue', cursive; font-size: 20px; color: #fff; }
+  .card-footer { padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .card-footer span { font-family: 'Space Mono', monospace; font-size: 7px; color: #4a5568; letter-spacing: 1px; }
+  .hover-hint { font-size: 9px; color: #475569; letter-spacing: 2px; }
+
+  /* Buttons */
+  .action-btns { display: flex; flex-direction: column; gap: 8px; width: 280px; }
+  .action-btn { padding: 10px 0; border-radius: 8px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; width: 100%; transition: all 0.2s; text-align: center; }
+  .btn-download { background: #162032; border: 1px solid #4299e1; color: #93c5fd; }
+  .btn-download:hover { background: #1e3a5f; }
+  .btn-copy { background: #0f172a; border: 1px solid #334155; color: #94a3b8; }
+  .btn-copy:hover { border-color: #22c55e; color: #86efac; }
+  .btn-copy.copied { background: #14532d; border-color: #22c55e; color: #86efac; }
+  .btn-load { background: #0f172a; border: 1px solid #4b5563; color: #6b7280; }
+  .btn-load:hover { border-color: #6366f1; color: #a5b4fc; }
+
+  /* JSON panel */
+  .json-panel { width: 280px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 14px; display: none; }
+  .json-panel.open { display: block; }
+  .json-panel textarea { width: 100%; min-height: 110px; resize: vertical; font-size: 11px; }
+  .json-error { color: #f87171; font-size: 9px; margin-top: 4px; display: none; }
+  .btn-load-confirm { margin-top: 8px; background: #1e1b4b; border: 1px solid #6366f1; color: #a5b4fc; }
+
+  /* Controls */
+  label.field-label { font-family: 'Space Mono', monospace; font-size: 10px; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+  .input, .select, .textarea { width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-family: 'Space Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.2s; }
+  .input:focus, .select:focus, .textarea:focus { border-color: #6366f1; }
+  .input::placeholder, .textarea::placeholder { color: #475569; }
+  .select { cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  .select option { background: #0f172a; color: #e2e8f0; }
+  .textarea { resize: vertical; min-height: 60px; }
+  .rarity-btns { display: flex; gap: 8px; }
+  .rarity-btn { flex: 1; padding: 8px 4px; background: transparent; border: 1px solid #334155; border-radius: 8px; cursor: pointer; color: #64748b; font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 1px; transition: all 0.2s; text-align: center; line-height: 1.6; }
+  .emoji-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .emoji-btn { width: 38px; height: 38px; font-size: 20px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .emoji-btn.active { background: #1e3a5f; border-color: #4299e1; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  .hint-box { background: #1e293b; border-radius: 10px; padding: 14px; border: 1px solid #334155; font-size: 10px; color: #64748b; line-height: 1.9; }
+  .hint-box strong { color: #94a3b8; }
+  .hint-green { color: #4ade80; }
+  .hint-blue { color: #60a5fa; }
+  .hint-purple { color: #c084fc; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0f172a; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="title">EL RETO</div>
+  <div class="subtitle">COLECCIONABLES SEMANALES</div>
+
+  <div class="layout">
+    <!-- Left column: Card + actions -->
+    <div class="left-col">
+      <div class="card-wrap">
+        <div class="card" id="card">
+          <div class="card-inner" id="cardInner">
+            <div class="shimmer" id="shimmer"></div>
+            <div class="rarity-bar" id="barTop"></div>
+            <div class="card-header">
+              <span class="rarity-label" id="rarityLabel"></span>
+              <span class="card-icon" id="cardIcon"></span>
+            </div>
+            <div class="avatar" id="avatar">
+              <div class="circle1" id="circle1"></div>
+              <div class="circle2" id="circle2"></div>
+              <span class="emoji-hero" id="emojiHero"></span>
+            </div>
+            <div class="name-section">
+              <div class="winner-name" id="winnerName"></div>
+              <div class="winner-title" id="winnerTitle"></div>
+            </div>
+            <div class="divider" id="divider"></div>
+            <div class="stats-area">
+              <div class="challenge-box" id="challengeBox">
+                <div class="challenge-label" id="challengeLabel">Reto Ganado</div>
+                <div class="challenge-text" id="challengeText"></div>
+              </div>
+              <div class="stat-row">
+                <div class="stat-box" id="weekBox">
+                  <div class="stat-label" id="weekLabel">SEMANA</div>
+                  <div class="stat-value" id="weekValue"></div>
+                </div>
+                <div class="stat-box" id="powerBox">
+                  <div class="stat-label" id="powerLabel">CREATIVIDAD</div>
+                  <div class="stat-value" id="powerValue"></div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span>CARTA DE EL RETO</span>
+              <span id="editionLabel"></span>
+            </div>
+            <div class="rarity-bar" id="barBottom"></div>
+          </div>
+        </div>
+      </div>
+      <div class="hover-hint">↑ TOCA O PASA EL MOUSE SOBRE LA CARTA</div>
+
+      <div class="action-btns">
+        <button class="action-btn btn-download" id="btnDownload">⬇ DESCARGAR HTML</button>
+        <button class="action-btn btn-copy" id="btnCopy">{ } COPIAR JSON</button>
+        <button class="action-btn btn-load" id="btnLoad">↑ CARGAR JSON</button>
+      </div>
+
+      <div class="json-panel" id="jsonPanel">
+        <label class="field-label">Pegar JSON de carta</label>
+        <textarea class="input textarea" id="jsonInput" placeholder='{"name":"ALEX","rarity":2,"week":"4"}'></textarea>
+        <div class="json-error" id="jsonError"></div>
+        <button class="action-btn btn-load-confirm" id="btnLoadConfirm">CARGAR CARTA →</button>
+      </div>
+    </div>
+
+    <!-- Right column: Controls -->
+    <div class="right-col">
+      <div>
+        <label class="field-label">Nivel de Rareza</label>
+        <div class="rarity-btns" id="rarityBtns"></div>
+      </div>
+      <div>
+        <label class="field-label">Nombre del Ganador</label>
+        <input class="input" id="nameInput" placeholder="ej. Alex Rivera">
+      </div>
+      <div>
+        <label class="field-label">Título</label>
+        <select class="input select" id="titleSelect"></select>
+      </div>
+      <div>
+        <label class="field-label">Icono</label>
+        <div class="emoji-grid" id="emojiGrid"></div>
+      </div>
+      <div>
+        <label class="field-label">Reto Ganado</label>
+        <textarea class="input textarea" id="challengeInput" placeholder="ej. Post Más Creativo"></textarea>
+      </div>
+      <div class="row">
+        <div>
+          <label class="field-label">Semana #</label>
+          <input class="input" id="weekInput" type="number" min="1" placeholder="1" value="1">
+        </div>
+        <div>
+          <label class="field-label">Creatividad</label>
+          <input class="input" id="powerInput" type="number" min="1" max="99" placeholder="99" value="99">
+        </div>
+      </div>
+      <div>
+        <label class="field-label">URL de la Imagen Ganadora</label>
+        <input class="input" id="imageUrlInput" placeholder="https://...">
+      </div>
+      <div>
+        <label class="field-label">Título de la Imagen</label>
+        <input class="input" id="imageTitleInput" placeholder="ej. TACOSTUMBRAS">
+      </div>
+      <div class="hint-box">
+        <strong>Opciones para compartir:</strong><br>
+        <span class="hint-green">Archivo HTML</span> — la mejor experiencia, efecto holográfico completo, se abre en cualquier navegador.<br>
+        <span class="hint-blue">Captura de pantalla</span> — para compartir rápido en Discord, Slack, iMessage.<br>
+        <span class="hint-purple">Copiar JSON</span> — guarda un registro de cada carta para recrearla después.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Data ---
+  var RARITIES = [
+    { label: "Común", color: "#a0aec0", glow: "#a0aec0", light: "#e2e8f0", shine: "linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 50%, #e2e8f0 100%)", stars: 1 },
+    { label: "Raro", color: "#4299e1", glow: "#4299e1", light: "#bee3f8", shine: "linear-gradient(135deg, #bee3f8 0%, #4299e1 50%, #bee3f8 100%)", stars: 2 },
+    { label: "Épico", color: "#9f7aea", glow: "#9f7aea", light: "#e9d8fd", shine: "linear-gradient(135deg, #e9d8fd 0%, #9f7aea 50%, #e9d8fd 100%)", stars: 3 },
+    { label: "Legendario", color: "#f6ad55", glow: "#f6ad55", light: "#fef3c7", shine: "linear-gradient(135deg, #fef3c7 0%, #f59e0b 30%, #fbbf24 50%, #f59e0b 70%, #fef3c7 100%)", stars: 4 },
+  ];
+  var EMOJIS = ["🏆","🔥","⚡","🎯","🌟","👑","💥","🎪","🚀","🎭","🦁","🐉"];
+  var TITLES = ["El Imparable","Leyenda de la Comunidad","Destructor de Retos","Maestro del Vibe","El Icónico","Campeón Supremo","El Legendario","Agente del Caos","El Dorado","El Todopoderoso","Señor de los Retos","El Mítico"];
+
+  var state = { name: "", challenge: "", week: "1", power: "99", emoji: "🏆", title: "El Imparable", rarity: 1, imageUrl: "", imageTitle: "" };
+
+  // --- DOM refs ---
+  var card = document.getElementById("card");
+  var cardInner = document.getElementById("cardInner");
+  var shimmer = document.getElementById("shimmer");
+  var barTop = document.getElementById("barTop");
+  var barBottom = document.getElementById("barBottom");
+  var rarityLabelEl = document.getElementById("rarityLabel");
+  var cardIconEl = document.getElementById("cardIcon");
+  var avatarEl = document.getElementById("avatar");
+  var circle1 = document.getElementById("circle1");
+  var circle2 = document.getElementById("circle2");
+  var emojiHero = document.getElementById("emojiHero");
+  var winnerName = document.getElementById("winnerName");
+  var winnerTitle = document.getElementById("winnerTitle");
+  var dividerEl = document.getElementById("divider");
+  var challengeBox = document.getElementById("challengeBox");
+  var challengeLabel = document.getElementById("challengeLabel");
+  var challengeText = document.getElementById("challengeText");
+  var weekBox = document.getElementById("weekBox");
+  var weekLabel = document.getElementById("weekLabel");
+  var weekValue = document.getElementById("weekValue");
+  var powerBox = document.getElementById("powerBox");
+  var powerLabel = document.getElementById("powerLabel");
+  var powerValue = document.getElementById("powerValue");
+  var editionLabel = document.getElementById("editionLabel");
+
+  // --- Render card ---
+  function render() {
+    var r = RARITIES[state.rarity];
+    card.style.boxShadow = "0 0 40px " + r.glow + "88, 0 20px 60px rgba(0,0,0,0.5)";
+    cardInner.style.border = "2px solid " + r.color;
+    barTop.style.background = r.shine;
+    barBottom.style.background = r.shine;
+    rarityLabelEl.style.color = r.color;
+    rarityLabelEl.textContent = "★".repeat(r.stars) + " " + r.label;
+    cardIconEl.textContent = state.emoji;
+    avatarEl.style.background = "radial-gradient(ellipse at 50% 30%, " + r.color + "33 0%, #0a0a1a 70%)";
+    avatarEl.style.border = "1px solid " + r.color + "44";
+    circle1.style.border = "1px solid " + r.color + "22";
+    circle2.style.border = "1px solid " + r.color + "44";
+    emojiHero.textContent = state.emoji;
+    winnerName.textContent = state.name || "GANADOR";
+    winnerName.style.textShadow = "0 0 20px " + r.color;
+    winnerTitle.textContent = state.title;
+    winnerTitle.style.color = r.color;
+    dividerEl.style.background = "linear-gradient(90deg, transparent, " + r.color + ", transparent)";
+    challengeBox.style.background = r.color + "11";
+    challengeBox.style.border = "1px solid " + r.color + "22";
+    challengeLabel.style.color = r.color;
+    challengeText.textContent = state.challenge || "Campeón Semanal";
+    weekBox.style.background = r.color + "11";
+    weekBox.style.border = "1px solid " + r.color + "22";
+    weekLabel.style.color = r.color;
+    weekValue.textContent = "#" + (state.week || "01");
+    powerBox.style.background = r.color + "11";
+    powerBox.style.border = "1px solid " + r.color + "22";
+    powerLabel.style.color = r.color;
+    powerValue.textContent = "+" + (state.power || "99");
+    editionLabel.textContent = "EDICIÓN #" + (state.week || "01");
+
+    // Update rarity buttons
+    document.querySelectorAll(".rarity-btn").forEach(function(btn, i) {
+      var ri = RARITIES[i];
+      if (i === state.rarity) {
+        btn.style.background = ri.color + "22";
+        btn.style.borderColor = ri.color;
+        btn.style.color = ri.color;
+      } else {
+        btn.style.background = "transparent";
+        btn.style.borderColor = "#334155";
+        btn.style.color = "#64748b";
+      }
+    });
+
+    // Update emoji buttons
+    document.querySelectorAll(".emoji-btn").forEach(function(btn) {
+      if (btn.dataset.emoji === state.emoji) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+  }
+
+  // --- Build controls ---
+  var rarityContainer = document.getElementById("rarityBtns");
+  RARITIES.forEach(function(r, i) {
+    var btn = document.createElement("button");
+    btn.className = "rarity-btn";
+    btn.innerHTML = "★".repeat(r.stars) + "<br>" + r.label.toUpperCase();
+    btn.addEventListener("click", function() { state.rarity = i; render(); });
+    rarityContainer.appendChild(btn);
+  });
+
+  var titleSelect = document.getElementById("titleSelect");
+  TITLES.forEach(function(t) {
+    var opt = document.createElement("option");
+    opt.value = t; opt.textContent = t;
+    titleSelect.appendChild(opt);
+  });
+
+  var emojiGrid = document.getElementById("emojiGrid");
+  EMOJIS.forEach(function(e) {
+    var btn = document.createElement("button");
+    btn.className = "emoji-btn";
+    btn.textContent = e;
+    btn.dataset.emoji = e;
+    btn.addEventListener("click", function() { state.emoji = e; render(); });
+    emojiGrid.appendChild(btn);
+  });
+
+  // --- Input bindings ---
+  document.getElementById("nameInput").addEventListener("input", function(e) {
+    state.name = e.target.value.toUpperCase(); render();
+  });
+  titleSelect.addEventListener("change", function(e) {
+    state.title = e.target.value; render();
+  });
+  document.getElementById("challengeInput").addEventListener("input", function(e) {
+    state.challenge = e.target.value; render();
+  });
+  document.getElementById("weekInput").addEventListener("input", function(e) {
+    state.week = e.target.value; render();
+  });
+  document.getElementById("powerInput").addEventListener("input", function(e) {
+    state.power = e.target.value; render();
+  });
+  document.getElementById("imageUrlInput").addEventListener("input", function(e) {
+    state.imageUrl = e.target.value;
+  });
+  document.getElementById("imageTitleInput").addEventListener("input", function(e) {
+    state.imageTitle = e.target.value;
+  });
+
+  // --- Holographic effect ---
+  card.addEventListener("mousemove", function(e) {
+    var rect = card.getBoundingClientRect();
+    var x = e.clientX - rect.left, y = e.clientY - rect.top;
+    var cx = rect.width / 2, cy = rect.height / 2;
+    var rotX = ((y - cy) / cy) * -12;
+    var rotY = ((x - cx) / cx) * 12;
+    card.style.transform = "perspective(800px) rotateX(" + rotX + "deg) rotateY(" + rotY + "deg) scale(1.03)";
+    var px = (x / rect.width) * 100;
+    var py = (y / rect.height) * 100;
+    shimmer.style.background = "radial-gradient(circle at " + px + "% " + py + "%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 60%, transparent 100%)";
+    shimmer.style.opacity = "1";
+  });
+  card.addEventListener("mouseleave", function() {
+    card.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)";
+    shimmer.style.opacity = "0";
+  });
+
+  // --- Actions ---
+  var btnCopy = document.getElementById("btnCopy");
+  btnCopy.addEventListener("click", function() {
+    var json = JSON.stringify(state, null, 2);
+    navigator.clipboard.writeText(json);
+    btnCopy.classList.add("copied");
+    btnCopy.textContent = "✓ COPIADO!";
+    setTimeout(function() {
+      btnCopy.classList.remove("copied");
+      btnCopy.textContent = "{ } COPIAR JSON";
+    }, 2000);
+  });
+
+  var jsonPanel = document.getElementById("jsonPanel");
+  var btnLoad = document.getElementById("btnLoad");
+  btnLoad.addEventListener("click", function() {
+    var isOpen = jsonPanel.classList.contains("open");
+    if (isOpen) {
+      jsonPanel.classList.remove("open");
+      btnLoad.textContent = "↑ CARGAR JSON";
+    } else {
+      jsonPanel.classList.add("open");
+      btnLoad.textContent = "✕ CERRAR";
+    }
+  });
+
+  document.getElementById("btnLoadConfirm").addEventListener("click", function() {
+    var errorEl = document.getElementById("jsonError");
+    try {
+      var parsed = JSON.parse(document.getElementById("jsonInput").value);
+      if (parsed.name !== undefined) state.name = parsed.name;
+      if (parsed.challenge !== undefined) state.challenge = parsed.challenge;
+      if (parsed.week !== undefined) state.week = parsed.week;
+      if (parsed.power !== undefined) state.power = parsed.power;
+      if (parsed.emoji !== undefined) state.emoji = parsed.emoji;
+      if (parsed.title !== undefined) state.title = parsed.title;
+      if (parsed.imageUrl !== undefined) state.imageUrl = parsed.imageUrl;
+      if (parsed.imageTitle !== undefined) state.imageTitle = parsed.imageTitle;
+      if (typeof parsed.rarity === "number" && parsed.rarity >= 0 && parsed.rarity <= 3) state.rarity = parsed.rarity;
+      document.getElementById("nameInput").value = state.name;
+      document.getElementById("challengeInput").value = state.challenge;
+      document.getElementById("weekInput").value = state.week;
+      document.getElementById("powerInput").value = state.power;
+      document.getElementById("imageUrlInput").value = state.imageUrl;
+      document.getElementById("imageTitleInput").value = state.imageTitle;
+      titleSelect.value = state.title;
+      document.getElementById("jsonInput").value = "";
+      errorEl.style.display = "none";
+      jsonPanel.classList.remove("open");
+      btnLoad.textContent = "↑ CARGAR JSON";
+      render();
+    } catch (e) {
+      errorEl.textContent = "JSON inválido — revisa el formato e inténtalo de nuevo.";
+      errorEl.style.display = "block";
+    }
+  });
+  document.getElementById("jsonInput").addEventListener("input", function() {
+    document.getElementById("jsonError").style.display = "none";
+  });
+
+  // Download HTML
+  document.getElementById("btnDownload").addEventListener("click", function() {
+    var r = RARITIES[state.rarity];
+    var cardId = r.label.toUpperCase() + "-" + String(Math.floor(Math.random() * 999) + 1).padStart(3, "0");
+    var stars = "";
+    for (var i = 0; i < r.stars; i++) stars += "★";
+    var c = r.color;
+    var g = r.glow;
+    var s = r.shine;
+    var lt = r.light;
+    var nm = state.name || "GANADOR";
+    var ch = state.challenge || "Campeón Semanal";
+    var wk = state.week || "1";
+    var pw = state.power || "99";
+    var imgUrl = state.imageUrl;
+    var imgTitle = state.imageTitle || "Imagen ganadora";
+
+    // Conditional image column + lightbox
+    var imgColHTML = "";
+    var lightboxHTML = "";
+    var lightboxJS = "";
+    if (imgUrl) {
+      imgColHTML = '<div class="img-col"><div class="showcase-img-wrap">'
+        + '<img class="showcase-img" src="' + imgUrl + '" alt="' + imgTitle + '">'
+        + '</div></div>';
+      lightboxHTML = '<div class="lightbox" id="lightbox">'
+        + '<img src="' + imgUrl + '" alt="' + imgTitle + '">'
+        + '</div>';
+      lightboxJS = 'var lightbox=document.getElementById("lightbox");'
+        + 'document.querySelector(".showcase-img").addEventListener("click",function(e){e.stopPropagation();if(revealed)lightbox.classList.add("open");});'
+        + 'lightbox.addEventListener("click",function(){lightbox.classList.remove("open");});';
+    }
+
+    var html = "";
+    html += '<!DOCTYPE html>\n<html lang="es">\n<head>\n';
+    html += '<meta charset="UTF-8">\n';
+    html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+    html += '<title>' + nm + ' — Carta de El Reto</title>\n';
+    html += '<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">\n';
+    html += '<style>\n';
+    // Base
+    html += '* { margin:0; padding:0; box-sizing:border-box; }\n';
+    html += 'body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50%,#0a0a0f 100%); display:flex; flex-direction:column; align-items:center; padding:60px 20px; font-family:"Space Mono",monospace; overflow-x:hidden; }\n';
+    // Reveal system
+    html += '.hero-title { font-family:"Bebas Neue",cursive; font-size:52px; letter-spacing:4px; color:#fff; text-align:center; line-height:1.1; text-shadow:0 0 30px ' + c + '66; position:relative; z-index:20; }\n';
+    html += '.tap-hint { font-family:"Space Mono",monospace; font-size:11px; color:' + c + '; letter-spacing:3px; text-transform:uppercase; text-align:center; margin-top:24px; position:relative; z-index:20; cursor:pointer; animation:glow-pulse 2.5s ease-in-out infinite; }\n';
+    html += '@keyframes glow-pulse { 0%,100%{ opacity:0.4; text-shadow:0 0 0 transparent; } 50%{ opacity:1; text-shadow:0 0 20px ' + c + '88; } }\n';
+    // Overlay layers
+    html += '.overlay { position:fixed; inset:0; z-index:15; background:#030712; pointer-events:none; }\n';
+    html += '.overlay.go { animation:overlay-out 1s ease-in-out 0.3s forwards; }\n';
+    html += '@keyframes overlay-out { 0%{ opacity:1; } 100%{ opacity:0; } }\n';
+    html += '.particles { position:fixed; inset:0; z-index:16; pointer-events:none; overflow:hidden; }\n';
+    html += '.particles.go { animation:particles-out 0.8s ease-in 0.2s forwards; }\n';
+    html += '@keyframes particles-out { to { opacity:0; } }\n';
+    html += '.p { position:absolute; border-radius:50%; background:' + c + '; opacity:0; animation:float-in 1.5s ease-in-out infinite; }\n';
+    html += '@keyframes float-in { 0%{ opacity:0; transform:translateY(0) scale(0); } 30%{ opacity:0.8; } 70%{ opacity:0.6; } 100%{ opacity:0; transform:translateY(-60px) scale(1.2); } }\n';
+    html += '.flash { position:fixed; inset:0; z-index:17; pointer-events:none; opacity:0; background:radial-gradient(circle at 50% 50%, ' + c + ' 0%, ' + c + '88 20%, transparent 60%); }\n';
+    html += '.flash.go { animation:flash-burst 0.8s ease-out forwards; }\n';
+    html += '@keyframes flash-burst { 0%{ opacity:0; transform:scale(0.2); } 15%{ opacity:1; } 100%{ opacity:0; transform:scale(3); } }\n';
+    html += '.ring { position:fixed; top:50%; left:50%; width:80px; height:80px; margin:-40px 0 0 -40px; border-radius:50%; border:3px solid ' + c + '; z-index:18; pointer-events:none; opacity:0; }\n';
+    html += '.ring.go { animation:ring-expand 1s ease-out forwards; }\n';
+    html += '@keyframes ring-expand { 0%{ opacity:1; transform:scale(0); } 50%{ opacity:0.6; } 100%{ opacity:0; transform:scale(25); } }\n';
+    // Content area
+    html += '.content-area { position:relative; width:100%; display:flex; flex-direction:column; align-items:center; margin-top:12px; }\n';
+    html += '.challenge-name { font-family:"Space Mono",monospace; font-size:13px; color:' + c + '; letter-spacing:3px; text-transform:uppercase; text-align:center; margin-top:12px; margin-bottom:40px; opacity:0; transform:scale(0.8); }\n';
+    html += '.challenge-name.revealed { animation:pop-in 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.5s forwards; }\n';
+    html += '.main-row { display:flex; gap:48px; align-items:center; justify-content:center; width:100%; max-width:860px; opacity:0; transform:translateY(40px) scale(0.95); }\n';
+    html += '.main-row.revealed { animation:slide-up 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.7s forwards; }\n';
+    html += '@keyframes pop-in { to { opacity:1; transform:scale(1); } }\n';
+    html += '@keyframes slide-up { to { opacity:1; transform:translateY(0) scale(1); } }\n';
+    // Image & card layout
+    html += '.img-col { flex:1; max-width:480px; }\n';
+    html += '.showcase-img-wrap { border-radius:16px; overflow:hidden; border:1px solid #1e293b; box-shadow:0 10px 40px rgba(0,0,0,0.5); height:420px; display:flex; align-items:center; }\n';
+    html += '.showcase-img { max-width:100%; max-height:100%; object-fit:contain; display:block; margin:0 auto; cursor:pointer; }\n';
+    html += '.card-col { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }\n';
+    html += '.card-wrap { perspective:800px; margin-bottom:12px; }\n';
+    html += '.card { width:280px; height:420px; border-radius:20px; position:relative; cursor:pointer; transform-style:preserve-3d; transition:transform 0.1s ease; box-shadow:0 0 40px ' + g + '88,0 20px 60px rgba(0,0,0,0.5); }\n';
+    html += '.card-inner { position:absolute; inset:0; border-radius:20px; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); border:2px solid ' + c + '; overflow:hidden; display:flex; flex-direction:column; }\n';
+    html += '.shimmer { position:absolute; inset:0; border-radius:20px; opacity:0; pointer-events:none; z-index:10; transition:opacity 0.1s; }\n';
+    html += '.rarity-bar { background:' + s + '; height:6px; width:100%; flex-shrink:0; }\n';
+    // Card internals
+    html += '.header { padding:12px 16px 8px; display:flex; justify-content:space-between; align-items:center; }\n';
+    html += '.rarity-label { font-family:"Bebas Neue",cursive; font-size:11px; letter-spacing:3px; color:' + c + '; text-transform:uppercase; }\n';
+    html += '.avatar { margin:0 16px; height:160px; border-radius:12px; flex-shrink:0; background:radial-gradient(ellipse at 50% 30%,' + c + '33 0%,#0a0a1a 70%); border:1px solid ' + c + '44; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }\n';
+    html += '.c1 { position:absolute; width:120px; height:120px; border-radius:50%; border:1px solid ' + c + '22; }\n';
+    html += '.c2 { position:absolute; width:80px; height:80px; border-radius:50%; border:1px solid ' + c + '44; }\n';
+    html += '.emoji-hero { font-size:64px; position:relative; z-index:1; }\n';
+    html += '.name-section { padding:12px 16px 4px; text-align:center; }\n';
+    html += '.winner-name { font-family:"Bebas Neue",cursive; font-size:32px; letter-spacing:2px; color:#fff; text-shadow:0 0 20px ' + c + '; line-height:1; }\n';
+    html += '.winner-title { font-family:"Space Mono",monospace; font-size:10px; color:' + c + '; letter-spacing:2px; margin-top:4px; text-transform:uppercase; }\n';
+    html += '.divider { margin:8px 16px; height:1px; background:linear-gradient(90deg,transparent,' + c + ',transparent); }\n';
+    html += '.stats { padding:0 16px; flex:1; }\n';
+    html += '.challenge-box { background:' + c + '11; border-radius:8px; padding:8px 10px; border:1px solid ' + c + '22; margin-bottom:8px; }\n';
+    html += '.challenge-label { font-family:"Space Mono",monospace; font-size:8px; color:' + c + '; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }\n';
+    html += '.challenge-text { font-family:"Space Mono",monospace; font-size:11px; color:#e2e8f0; line-height:1.4; }\n';
+    html += '.stat-row { display:flex; gap:6px; }\n';
+    html += '.stat-box { flex:1; background:' + c + '11; border-radius:8px; padding:6px 8px; border:1px solid ' + c + '22; text-align:center; }\n';
+    html += '.stat-label { font-family:"Space Mono",monospace; font-size:7px; color:' + c + '; letter-spacing:1px; }\n';
+    html += '.stat-value { font-family:"Bebas Neue",cursive; font-size:20px; color:#fff; }\n';
+    html += '.footer { padding:8px 16px; display:flex; justify-content:space-between; align-items:center; }\n';
+    html += '.footer span { font-family:"Space Mono",monospace; font-size:7px; color:#4a5568; letter-spacing:1px; }\n';
+    html += '.hint { color:#64748b; font-size:10px; letter-spacing:2px; text-align:center; margin-top:4px; opacity:0; }\n';
+    html += '.hint.revealed { animation:pop-in 0.5s ease 1.3s forwards; }\n';
+    // Lightbox
+    html += '.lightbox { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.4s ease; cursor:pointer; }\n';
+    html += '.lightbox.open { opacity:1; pointer-events:auto; }\n';
+    html += '.lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:12px; }\n';
+    // Responsive
+    html += '@media (max-width:720px) {\n';
+    html += '  .main-row { flex-direction:column; gap:32px; }\n';
+    html += '  .img-col { max-width:100%; }\n';
+    html += '  .showcase-img-wrap { height:auto; }\n';
+    html += '  .showcase-img { height:auto; }\n';
+    html += '}\n';
+    html += '</style>\n</head>\n<body>\n';
+    // Hero + reveal layers
+    html += '<div class="hero-title">GANADOR DEL RETO<br>SEMANA ' + wk + '</div>\n';
+    html += '<div class="tap-hint" id="tapHint">▼ CLICK PARA REVELAR ▼</div>\n';
+    html += '<div class="overlay" id="overlay"></div>\n';
+    html += '<div class="particles" id="particles"></div>\n';
+    html += '<div class="flash" id="flash"></div>\n';
+    html += '<div class="ring" id="ring"></div>\n';
+    // Content area
+    html += '<div class="content-area">\n';
+    html += '<div class="challenge-name" id="challengeName">' + ch + '</div>\n';
+    html += '<div class="main-row" id="mainRow">\n';
+    html += imgColHTML;
+    html += '<div class="card-col">\n';
+    html += '<div class="card-wrap">\n';
+    html += '<div class="card" id="card">\n<div class="card-inner">\n';
+    html += '<div class="shimmer" id="shimmer"></div>\n';
+    html += '<div class="rarity-bar"></div>\n';
+    html += '<div class="header">\n';
+    html += '<span class="rarity-label">' + stars + ' ' + r.label + '</span>\n';
+    html += '<span style="font-size:18px">' + state.emoji + '</span>\n';
+    html += '</div>\n';
+    html += '<div class="avatar">\n<div class="c1"></div><div class="c2"></div>\n';
+    html += '<span class="emoji-hero">' + state.emoji + '</span>\n</div>\n';
+    html += '<div class="name-section">\n';
+    html += '<div class="winner-name">' + nm + '</div>\n';
+    html += '<div class="winner-title">' + state.title + '</div>\n';
+    html += '</div>\n<div class="divider"></div>\n';
+    html += '<div class="stats">\n';
+    html += '<div class="challenge-box">\n';
+    html += '<div class="challenge-label">Reto Ganado</div>\n';
+    html += '<div class="challenge-text">' + ch + '</div>\n';
+    html += '</div>\n<div class="stat-row">\n';
+    html += '<div class="stat-box"><div class="stat-label">SEMANA</div><div class="stat-value">#' + wk + '</div></div>\n';
+    html += '<div class="stat-box"><div class="stat-label">CREATIVIDAD</div><div class="stat-value">+' + pw + '</div></div>\n';
+    html += '</div>\n</div>\n';
+    html += '<div class="footer">\n<span>CARTA DE EL RETO</span>\n<span>' + cardId + '</span>\n</div>\n';
+    html += '<div class="rarity-bar"></div>\n';
+    html += '</div>\n</div>\n</div>\n';
+    html += '<p class="hint" id="hintText">↑ TOCA O PASA EL MOUSE SOBRE LA CARTA</p>\n';
+    html += '</div>\n</div>\n</div>\n';
+    html += lightboxHTML + '\n';
+    // Script
+    html += '<script>\n';
+    html += 'var card=document.getElementById("card"),shimmer=document.getElementById("shimmer");\n';
+    html += 'var overlay=document.getElementById("overlay"),particles=document.getElementById("particles");\n';
+    html += 'var flash=document.getElementById("flash"),ring=document.getElementById("ring");\n';
+    html += 'var tapHint=document.getElementById("tapHint");\n';
+    html += 'var challengeName=document.getElementById("challengeName"),mainRow=document.getElementById("mainRow"),hintText=document.getElementById("hintText");\n';
+    html += 'var revealed=false;\n';
+    // Particles
+    html += 'function spawnParticles(){for(var i=0;i<30;i++){var p=document.createElement("div");p.className="p";var size=Math.random()*4+2;p.style.width=size+"px";p.style.height=size+"px";p.style.left=Math.random()*100+"%";p.style.top=Math.random()*100+"%";p.style.animationDelay=(Math.random()*3)+"s";p.style.animationDuration=(2+Math.random()*3)+"s";if(Math.random()>0.6)p.style.background="' + lt + '";particles.appendChild(p);}}\n';
+    html += 'spawnParticles();\n';
+    // Reveal
+    html += 'function reveal(){if(revealed)return;revealed=true;tapHint.style.transition="opacity 0.3s";tapHint.style.opacity="0";flash.classList.add("go");ring.classList.add("go");overlay.classList.add("go");particles.classList.add("go");challengeName.classList.add("revealed");mainRow.classList.add("revealed");hintText.classList.add("revealed");setTimeout(function(){overlay.style.display="none";particles.style.display="none";flash.style.display="none";ring.style.display="none";},2000);}\n';
+    html += 'tapHint.addEventListener("click",reveal);\n';
+    html += 'document.addEventListener("click",function(e){if(!revealed)reveal();});\n';
+    html += 'document.addEventListener("keydown",function(e){if(!revealed&&e.code==="Space"){e.preventDefault();reveal();}});\n';
+    // Lightbox
+    html += lightboxJS + '\n';
+    // Holographic effect with touch
+    html += 'function holoEffect(x,y){var rect=card.getBoundingClientRect(),cx=rect.width/2,cy=rect.height/2;card.style.transform="perspective(800px) rotateX("+((y-cy)/cy*-12)+"deg) rotateY("+((x-cx)/cx*12)+"deg) scale(1.03)";shimmer.style.background="radial-gradient(circle at "+(x/rect.width*100)+"% "+(y/rect.height*100)+"%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 60%, transparent 100%)";shimmer.style.opacity="1";}\n';
+    html += 'function holoReset(){card.style.transform="perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)";shimmer.style.opacity="0";}\n';
+    html += 'card.addEventListener("mousemove",function(e){holoEffect(e.clientX-card.getBoundingClientRect().left,e.clientY-card.getBoundingClientRect().top);});\n';
+    html += 'card.addEventListener("mouseleave",holoReset);\n';
+    html += 'card.addEventListener("touchmove",function(e){e.preventDefault();var t=e.touches[0],rect=card.getBoundingClientRect();holoEffect(t.clientX-rect.left,t.clientY-rect.top);},{passive:false});\n';
+    html += 'card.addEventListener("touchend",holoReset);\n';
+    html += '<\/script>\n</body>\n</html>';
+
+    var blob = new Blob([html], { type: "text/html" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nm.replace(/\s+/g, "-").toLowerCase() + "-semana" + wk + "-carta.html";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // --- Initial render ---
+  render();
+</script>
+</body>
+</html>

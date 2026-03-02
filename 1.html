@@ -8,64 +8,79 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50%,#0a0a0f 100%); display:flex; flex-direction:column; align-items:center; padding:60px 20px; font-family:"Space Mono",monospace; overflow-x:hidden; }
-.hero-title { font-family:"Bebas Neue",cursive; font-size:52px; letter-spacing:4px; color:#fff; text-align:center; line-height:1.1; text-shadow:0 0 30px #d946ef66; position:relative; z-index:20; }
-.tap-hint { font-family:"Space Mono",monospace; font-size:11px; color:#d946ef; letter-spacing:3px; text-transform:uppercase; text-align:center; margin-top:20px; position:relative; z-index:20; cursor:pointer; animation:pulse 2s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
+
+/* --- REVEAL SYSTEM --- */
+.hero-title { font-family:"Bebas Neue",cursive; font-size:52px; letter-spacing:4px; color:#fff; text-align:center; line-height:1.1; text-shadow:0 0 30px #9f7aea66; position:relative; z-index:20; }
+.tap-hint { font-family:"Space Mono",monospace; font-size:11px; color:#9f7aea; letter-spacing:3px; text-transform:uppercase; text-align:center; margin-top:24px; position:relative; z-index:20; cursor:pointer; animation:glow-pulse 2.5s ease-in-out infinite; }
+@keyframes glow-pulse { 0%,100%{ opacity:0.4; text-shadow:0 0 0 transparent; } 50%{ opacity:1; text-shadow:0 0 20px #9f7aea88; } }
+
+/* Overlay: dark curtain with floating particles */
+.overlay { position:fixed; inset:0; z-index:15; background:#030712; pointer-events:none; }
+.overlay.go { animation:overlay-out 1s ease-in-out 0.3s forwards; }
+@keyframes overlay-out { 0%{ opacity:1; } 100%{ opacity:0; } }
+.particles { position:fixed; inset:0; z-index:16; pointer-events:none; overflow:hidden; }
+.particles.go { animation:particles-out 0.8s ease-in 0.2s forwards; }
+@keyframes particles-out { to { opacity:0; } }
+.p { position:absolute; border-radius:50%; background:#9f7aea; opacity:0; animation:float-in 1.5s ease-in-out infinite; }
+@keyframes float-in { 0%{ opacity:0; transform:translateY(0) scale(0); } 30%{ opacity:0.8; } 70%{ opacity:0.6; } 100%{ opacity:0; transform:translateY(-60px) scale(1.2); } }
+
+/* Flash burst on reveal */
+.flash { position:fixed; inset:0; z-index:17; pointer-events:none; opacity:0; background:radial-gradient(circle at 50% 50%, #9f7aea 0%, #9f7aea88 20%, transparent 60%); }
+.flash.go { animation:flash-burst 0.8s ease-out forwards; }
+@keyframes flash-burst { 0%{ opacity:0; transform:scale(0.2); } 15%{ opacity:1; } 100%{ opacity:0; transform:scale(3); } }
+
+/* Shockwave ring */
+.ring { position:fixed; top:50%; left:50%; width:80px; height:80px; margin:-40px 0 0 -40px; border-radius:50%; border:3px solid #9f7aea; z-index:18; pointer-events:none; opacity:0; }
+.ring.go { animation:ring-expand 1s ease-out forwards; }
+@keyframes ring-expand { 0%{ opacity:1; transform:scale(0); } 50%{ opacity:0.6; } 100%{ opacity:0; transform:scale(25); } }
+
+/* Content area */
 .content-area { position:relative; width:100%; display:flex; flex-direction:column; align-items:center; margin-top:12px; }
+.challenge-name { font-family:"Space Mono",monospace; font-size:13px; color:#9f7aea; letter-spacing:3px; text-transform:uppercase; text-align:center; margin-top:12px; margin-bottom:40px; opacity:0; transform:scale(0.8); }
+.challenge-name.revealed { animation:pop-in 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.5s forwards; }
+.main-row { display:flex; gap:48px; align-items:center; justify-content:center; width:100%; max-width:860px; opacity:0; transform:translateY(40px) scale(0.95); }
+.main-row.revealed { animation:slide-up 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.7s forwards; }
+@keyframes pop-in { to { opacity:1; transform:scale(1); } }
+@keyframes slide-up { to { opacity:1; transform:translateY(0) scale(1); } }
 
-/* Smoke overlay */
-.smoke-overlay { position:absolute; inset:0; z-index:15; pointer-events:none; transition:opacity 1.8s ease-out; }
-.smoke-overlay.cleared { opacity:0; }
-.smoke-layer { position:absolute; width:100%; height:100%; background:radial-gradient(ellipse at 50% 30%, #0a0a1a 0%, transparent 70%); }
-.smoke-layer:nth-child(1) { background:linear-gradient(180deg, #030712 0%, #030712ee 20%, #030712cc 40%, #03071288 60%, transparent 100%); }
-.smoke-layer:nth-child(2) { background:radial-gradient(ellipse at 30% 50%, #0a0a1fdd 0%, transparent 60%); animation:drift1 4s ease-in-out infinite; }
-.smoke-layer:nth-child(3) { background:radial-gradient(ellipse at 70% 40%, #0f0f1add 0%, transparent 60%); animation:drift2 5s ease-in-out infinite; }
-.smoke-layer:nth-child(4) { background:radial-gradient(ellipse at 50% 60%, #d946ef08 0%, transparent 50%); animation:drift3 6s ease-in-out infinite; }
-@keyframes drift1 { 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(-20px,10px); } }
-@keyframes drift2 { 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(15px,-15px); } }
-@keyframes drift3 { 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(-10px,-8px); } }
-
-/* Hidden content that reveals */
-.challenge-name { font-family:"Space Mono",monospace; font-size:13px; color:#d946ef; letter-spacing:3px; text-transform:uppercase; text-align:center; margin-top:12px; margin-bottom:40px; opacity:0; transform:translateY(20px); transition:opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s; }
-.challenge-name.revealed { opacity:1; transform:translateY(0); }
-.main-row { display:flex; gap:48px; align-items:center; justify-content:center; width:100%; max-width:860px; opacity:0; transform:translateY(30px); transition:opacity 1s ease 0.6s, transform 1s ease 0.6s; }
-.main-row.revealed { opacity:1; transform:translateY(0); }
-
+/* Image & card layout */
 .img-col { flex:1; max-width:480px; }
 .showcase-img-wrap { border-radius:16px; overflow:hidden; border:1px solid #1e293b; box-shadow:0 10px 40px rgba(0,0,0,0.5); height:420px; display:flex; align-items:center; }
-.showcase-img { max-width:100%; max-height:100%; object-fit:contain; display:block; margin:0 auto; }
+.showcase-img { max-width:100%; max-height:100%; object-fit:contain; display:block; margin:0 auto; cursor:pointer; }
 .card-col { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
 .card-wrap { perspective:800px; margin-bottom:12px; }
-.card { width:280px; height:420px; border-radius:20px; position:relative; cursor:pointer; transform-style:preserve-3d; transition:transform 0.1s ease; box-shadow:0 0 40px #d946ef88,0 20px 60px rgba(0,0,0,0.5); }
-.card-inner { position:absolute; inset:0; border-radius:20px; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); border:2px solid #d946ef; overflow:hidden; display:flex; flex-direction:column; }
+.card { width:280px; height:420px; border-radius:20px; position:relative; cursor:pointer; transform-style:preserve-3d; transition:transform 0.1s ease; box-shadow:0 0 40px #9f7aea88,0 20px 60px rgba(0,0,0,0.5); }
+.card-inner { position:absolute; inset:0; border-radius:20px; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); border:2px solid #9f7aea; overflow:hidden; display:flex; flex-direction:column; }
 .shimmer { position:absolute; inset:0; border-radius:20px; opacity:0; pointer-events:none; z-index:10; transition:opacity 0.1s; }
-.rarity-bar { background:linear-gradient(135deg, #f0abfc 0%, #d946ef 50%, #f0abfc 100%); height:6px; width:100%; flex-shrink:0; }
+.rarity-bar { background:linear-gradient(135deg, #e9d8fd 0%, #9f7aea 50%, #e9d8fd 100%); height:6px; width:100%; flex-shrink:0; }
 .header { padding:12px 16px 8px; display:flex; justify-content:space-between; align-items:center; }
-.rarity-label { font-family:"Bebas Neue",cursive; font-size:11px; letter-spacing:3px; color:#d946ef; text-transform:uppercase; }
-.avatar { margin:0 16px; height:160px; border-radius:12px; flex-shrink:0; background:radial-gradient(ellipse at 50% 30%,#d946ef33 0%,#0a0a1a 70%); border:1px solid #d946ef44; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
-.c1 { position:absolute; width:120px; height:120px; border-radius:50%; border:1px solid #d946ef22; }
-.c2 { position:absolute; width:80px; height:80px; border-radius:50%; border:1px solid #d946ef44; }
+.rarity-label { font-family:"Bebas Neue",cursive; font-size:11px; letter-spacing:3px; color:#9f7aea; text-transform:uppercase; }
+.avatar { margin:0 16px; height:160px; border-radius:12px; flex-shrink:0; background:radial-gradient(ellipse at 50% 30%,#9f7aea33 0%,#0a0a1a 70%); border:1px solid #9f7aea44; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+.c1 { position:absolute; width:120px; height:120px; border-radius:50%; border:1px solid #9f7aea22; }
+.c2 { position:absolute; width:80px; height:80px; border-radius:50%; border:1px solid #9f7aea44; }
 .emoji-hero { font-size:64px; position:relative; z-index:1; }
 .name-section { padding:12px 16px 4px; text-align:center; }
-.winner-name { font-family:"Bebas Neue",cursive; font-size:32px; letter-spacing:2px; color:#fff; text-shadow:0 0 20px #d946ef; line-height:1; }
-.winner-title { font-family:"Space Mono",monospace; font-size:10px; color:#d946ef; letter-spacing:2px; margin-top:4px; text-transform:uppercase; }
-.divider { margin:8px 16px; height:1px; background:linear-gradient(90deg,transparent,#d946ef,transparent); }
+.winner-name { font-family:"Bebas Neue",cursive; font-size:32px; letter-spacing:2px; color:#fff; text-shadow:0 0 20px #9f7aea; line-height:1; }
+.winner-title { font-family:"Space Mono",monospace; font-size:10px; color:#9f7aea; letter-spacing:2px; margin-top:4px; text-transform:uppercase; }
+.divider { margin:8px 16px; height:1px; background:linear-gradient(90deg,transparent,#9f7aea,transparent); }
 .stats { padding:0 16px; flex:1; }
-.challenge-box { background:#d946ef11; border-radius:8px; padding:8px 10px; border:1px solid #d946ef22; margin-bottom:8px; }
-.challenge-label { font-family:"Space Mono",monospace; font-size:8px; color:#d946ef; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
+.challenge-box { background:#9f7aea11; border-radius:8px; padding:8px 10px; border:1px solid #9f7aea22; margin-bottom:8px; }
+.challenge-label { font-family:"Space Mono",monospace; font-size:8px; color:#9f7aea; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
 .challenge-text { font-family:"Space Mono",monospace; font-size:11px; color:#e2e8f0; line-height:1.4; }
 .stat-row { display:flex; gap:6px; }
-.stat-box { flex:1; background:#d946ef11; border-radius:8px; padding:6px 8px; border:1px solid #d946ef22; text-align:center; }
-.stat-label { font-family:"Space Mono",monospace; font-size:7px; color:#d946ef; letter-spacing:1px; }
+.stat-box { flex:1; background:#9f7aea11; border-radius:8px; padding:6px 8px; border:1px solid #9f7aea22; text-align:center; }
+.stat-label { font-family:"Space Mono",monospace; font-size:7px; color:#9f7aea; letter-spacing:1px; }
 .stat-value { font-family:"Bebas Neue",cursive; font-size:20px; color:#fff; }
 .footer { padding:8px 16px; display:flex; justify-content:space-between; align-items:center; }
 .footer span { font-family:"Space Mono",monospace; font-size:7px; color:#4a5568; letter-spacing:1px; }
-.hint { color:#64748b; font-size:10px; letter-spacing:2px; text-align:center; margin-top:4px; opacity:0; transition:opacity 0.8s ease 1.2s; }
-.hint.revealed { opacity:1; }
-.showcase-img { cursor:pointer; }
+.hint { color:#64748b; font-size:10px; letter-spacing:2px; text-align:center; margin-top:4px; opacity:0; }
+.hint.revealed { animation:pop-in 0.5s ease 1.3s forwards; }
+
+/* Lightbox */
 .lightbox { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.4s ease; cursor:pointer; }
 .lightbox.open { opacity:1; pointer-events:auto; }
 .lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:12px; }
+
 @media (max-width:720px) {
   .main-row { flex-direction:column; gap:32px; }
   .img-col { max-width:100%; }
@@ -77,13 +92,14 @@ body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50
 <body>
 <div class="hero-title">GANADOR DEL RETO<br>SEMANA 1</div>
 <div class="tap-hint" id="tapHint">▼ CLICK PARA REVELAR ▼</div>
+
+<!-- Reveal layers -->
+<div class="overlay" id="overlay"></div>
+<div class="particles" id="particles"></div>
+<div class="flash" id="flash"></div>
+<div class="ring" id="ring"></div>
+
 <div class="content-area">
-<div class="smoke-overlay" id="smoke">
-<div class="smoke-layer"></div>
-<div class="smoke-layer"></div>
-<div class="smoke-layer"></div>
-<div class="smoke-layer"></div>
-</div>
 <div class="challenge-name" id="challengeName">Tacos con IA: "TACOSTUMBRAS"</div>
 <div class="main-row" id="mainRow">
 <div class="img-col">
@@ -98,7 +114,7 @@ body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50
 <div class="shimmer" id="shimmer"></div>
 <div class="rarity-bar"></div>
 <div class="header">
-<span class="rarity-label">★★ Raro</span>
+<span class="rarity-label">★★★ Épico</span>
 <span style="font-size:18px">👑</span>
 </div>
 <div class="avatar">
@@ -122,7 +138,7 @@ body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50
 </div>
 <div class="footer">
 <span>CARTA DE EL RETO</span>
-<span>RARO-001</span>
+<span>ÉPICO-001</span>
 </div>
 <div class="rarity-bar"></div>
 </div>
@@ -132,34 +148,71 @@ body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50
 </div>
 </div>
 </div>
+
 <div class="lightbox" id="lightbox">
 <img src="img/1.png" alt="TACOSTUMBRAS">
 </div>
+
 <script>
 var card=document.getElementById("card"),shimmer=document.getElementById("shimmer");
-var smoke=document.getElementById("smoke"),tapHint=document.getElementById("tapHint");
+var overlay=document.getElementById("overlay"),particles=document.getElementById("particles");
+var flash=document.getElementById("flash"),ring=document.getElementById("ring");
+var tapHint=document.getElementById("tapHint");
 var challengeName=document.getElementById("challengeName"),mainRow=document.getElementById("mainRow"),hintText=document.getElementById("hintText");
 var revealed=false;
+
+// Spawn floating particles
+function spawnParticles(){
+  for(var i=0;i<30;i++){
+    var p=document.createElement("div");
+    p.className="p";
+    var size=Math.random()*4+2;
+    p.style.width=size+"px";
+    p.style.height=size+"px";
+    p.style.left=Math.random()*100+"%";
+    p.style.top=Math.random()*100+"%";
+    p.style.animationDelay=(Math.random()*3)+"s";
+    p.style.animationDuration=(2+Math.random()*3)+"s";
+    if(Math.random()>0.6) p.style.background="#e9d8fd";
+    particles.appendChild(p);
+  }
+}
+spawnParticles();
 
 function reveal(){
   if(revealed) return;
   revealed=true;
+  // Hide hint
+  tapHint.style.transition="opacity 0.3s";
   tapHint.style.opacity="0";
-  tapHint.style.transition="opacity 0.5s";
-  smoke.classList.add("cleared");
+  // Trigger burst sequence
+  flash.classList.add("go");
+  ring.classList.add("go");
+  overlay.classList.add("go");
+  particles.classList.add("go");
+  // Reveal content
   challengeName.classList.add("revealed");
   mainRow.classList.add("revealed");
   hintText.classList.add("revealed");
+  // Clean up overlay layers after animation
+  setTimeout(function(){
+    overlay.style.display="none";
+    particles.style.display="none";
+    flash.style.display="none";
+    ring.style.display="none";
+  },2000);
 }
 
 tapHint.addEventListener("click",reveal);
 document.addEventListener("click",function(e){ if(!revealed) reveal(); });
 document.addEventListener("keydown",function(e){ if(!revealed && e.code==="Space"){ e.preventDefault(); reveal(); } });
 
+// Lightbox
 var lightbox=document.getElementById("lightbox");
 document.querySelector(".showcase-img").addEventListener("click",function(e){ e.stopPropagation(); if(revealed) lightbox.classList.add("open"); });
 lightbox.addEventListener("click",function(){ lightbox.classList.remove("open"); });
 
+// Holographic effect
 function holoEffect(x,y){var rect=card.getBoundingClientRect(),cx=rect.width/2,cy=rect.height/2;card.style.transform="perspective(800px) rotateX("+((y-cy)/cy*-12)+"deg) rotateY("+((x-cx)/cx*12)+"deg) scale(1.03)";shimmer.style.background="radial-gradient(circle at "+(x/rect.width*100)+"% "+(y/rect.height*100)+"%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 60%, transparent 100%)";shimmer.style.opacity="1";}
 function holoReset(){card.style.transform="perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)";shimmer.style.opacity="0";}
 card.addEventListener("mousemove",function(e){holoEffect(e.clientX-card.getBoundingClientRect().left,e.clientY-card.getBoundingClientRect().top);});
