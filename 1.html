@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50%,#0a0a0f 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:"Space Mono",monospace; }
+body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50%,#0a0a0f 100%); display:flex; flex-direction:column; align-items:center; padding:60px 20px; font-family:"Space Mono",monospace; }
 .card-wrap { perspective:800px; margin-bottom:20px; }
 .card { width:280px; height:420px; border-radius:20px; position:relative; cursor:pointer; transform-style:preserve-3d; transition:transform 0.1s ease; box-shadow:0 0 40px #4299e188,0 20px 60px rgba(0,0,0,0.5); }
 .card-inner { position:absolute; inset:0; border-radius:20px; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); border:2px solid #4299e1; overflow:hidden; display:flex; flex-direction:column; }
@@ -34,6 +34,15 @@ body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50
 .footer { padding:8px 16px; display:flex; justify-content:space-between; align-items:center; }
 .footer span { font-family:"Space Mono",monospace; font-size:7px; color:#4a5568; letter-spacing:1px; }
 .hint { color:#64748b; font-size:10px; letter-spacing:2px; text-align:center; margin-top:8px; }
+.showcase { margin-top:48px; width:100%; max-width:480px; text-align:center; }
+.showcase-header { margin-bottom:20px; }
+.showcase-tag { font-family:"Space Mono",monospace; font-size:9px; color:#4299e1; letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+.showcase-challenge { font-family:"Bebas Neue",cursive; font-size:28px; letter-spacing:2px; color:#fff; line-height:1.2; }
+.showcase-img-wrap { border-radius:16px; overflow:hidden; border:1px solid #1e293b; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+.showcase-img { width:100%; display:block; }
+.showcase-caption { margin-top:16px; }
+.showcase-img-title { font-family:"Bebas Neue",cursive; font-size:20px; color:#e2e8f0; letter-spacing:1px; }
+.showcase-winner { font-family:"Space Mono",monospace; font-size:10px; color:#64748b; letter-spacing:2px; margin-top:4px; text-transform:uppercase; }
 </style>
 </head>
 <body>
@@ -74,6 +83,19 @@ body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50
 </div>
 </div>
 <p class="hint">↑ PASA EL MOUSE PARA VER EL EFECTO</p>
+<div class="showcase">
+<div class="showcase-header">
+<div class="showcase-tag">SEMANA 1 — RETO GANADO</div>
+<div class="showcase-challenge">Tacos con IA: "TACOSTUMBRAS"</div>
+</div>
+<div class="showcase-img-wrap">
+<img class="showcase-img" src="img/1.png" alt="TACOSTUMBRAS">
+</div>
+<div class="showcase-caption">
+<div class="showcase-img-title">"TACOSTUMBRAS"</div>
+<div class="showcase-winner">por EVA</div>
+</div>
+</div>
 <script>
 var card=document.getElementById("card"),shimmer=document.getElementById("shimmer");
 card.addEventListener("mousemove",function(e){var rect=card.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,cx=rect.width/2,cy=rect.height/2;card.style.transform="perspective(800px) rotateX("+((y-cy)/cy*-12)+"deg) rotateY("+((x-cx)/cx*12)+"deg) scale(1.03)";shimmer.style.background="radial-gradient(circle at "+(x/rect.width*100)+"% "+(y/rect.height*100)+"%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 60%, transparent 100%)";shimmer.style.opacity="1";});
