@@ -128,7 +128,7 @@ body { min-height:100vh; background:linear-gradient(135deg,#000000 0%,#030712 50
 </div>
 </div>
 </div>
-<p class="hint" id="hintText">↑ PASA EL MOUSE PARA VER EL EFECTO</p>
+<p class="hint" id="hintText">↑ TOCA O PASA EL MOUSE SOBRE LA CARTA</p>
 </div>
 </div>
 </div>
@@ -160,8 +160,12 @@ var lightbox=document.getElementById("lightbox");
 document.querySelector(".showcase-img").addEventListener("click",function(e){ e.stopPropagation(); if(revealed) lightbox.classList.add("open"); });
 lightbox.addEventListener("click",function(){ lightbox.classList.remove("open"); });
 
-card.addEventListener("mousemove",function(e){var rect=card.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,cx=rect.width/2,cy=rect.height/2;card.style.transform="perspective(800px) rotateX("+((y-cy)/cy*-12)+"deg) rotateY("+((x-cx)/cx*12)+"deg) scale(1.03)";shimmer.style.background="radial-gradient(circle at "+(x/rect.width*100)+"% "+(y/rect.height*100)+"%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 60%, transparent 100%)";shimmer.style.opacity="1";});
-card.addEventListener("mouseleave",function(){card.style.transform="perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)";shimmer.style.opacity="0";});
+function holoEffect(x,y){var rect=card.getBoundingClientRect(),cx=rect.width/2,cy=rect.height/2;card.style.transform="perspective(800px) rotateX("+((y-cy)/cy*-12)+"deg) rotateY("+((x-cx)/cx*12)+"deg) scale(1.03)";shimmer.style.background="radial-gradient(circle at "+(x/rect.width*100)+"% "+(y/rect.height*100)+"%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 60%, transparent 100%)";shimmer.style.opacity="1";}
+function holoReset(){card.style.transform="perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)";shimmer.style.opacity="0";}
+card.addEventListener("mousemove",function(e){holoEffect(e.clientX-card.getBoundingClientRect().left,e.clientY-card.getBoundingClientRect().top);});
+card.addEventListener("mouseleave",holoReset);
+card.addEventListener("touchmove",function(e){e.preventDefault();var t=e.touches[0],rect=card.getBoundingClientRect();holoEffect(t.clientX-rect.left,t.clientY-rect.top);},{passive:false});
+card.addEventListener("touchend",holoReset);
 </script>
 </body>
 </html>
